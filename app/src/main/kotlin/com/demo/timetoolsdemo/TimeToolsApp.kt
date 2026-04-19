@@ -51,8 +51,9 @@ fun TimeToolsApp() {
     var timerPresetsEnabled by remember { mutableStateOf(true) }
     var timerSoundEnabled by remember { mutableStateOf(true) }
     
-    // Load feature flags
+    // Load feature flags and register real-time listeners
     LaunchedEffect(Unit) {
+        // Initial load
         alarmEnabled = LaunchDarklyManager.getBooleanFlag(LaunchDarklyManager.FLAG_ALARM_ENABLED, true)
         alarmSnoozeEnabled = LaunchDarklyManager.getBooleanFlag(LaunchDarklyManager.FLAG_ALARM_SNOOZE, true)
         alarmSoundOptionsEnabled = LaunchDarklyManager.getBooleanFlag(LaunchDarklyManager.FLAG_ALARM_SOUND_OPTIONS, true)
@@ -64,6 +65,19 @@ fun TimeToolsApp() {
         timerEnabled = LaunchDarklyManager.getBooleanFlag(LaunchDarklyManager.FLAG_TIMER_ENABLED, true)
         timerPresetsEnabled = LaunchDarklyManager.getBooleanFlag(LaunchDarklyManager.FLAG_TIMER_PRESETS, true)
         timerSoundEnabled = LaunchDarklyManager.getBooleanFlag(LaunchDarklyManager.FLAG_TIMER_SOUND, true)
+        
+        // Register real-time listeners for instant updates
+        LaunchDarklyManager.registerFlagListener(LaunchDarklyManager.FLAG_ALARM_ENABLED) { alarmEnabled = it }
+        LaunchDarklyManager.registerFlagListener(LaunchDarklyManager.FLAG_ALARM_SNOOZE) { alarmSnoozeEnabled = it }
+        LaunchDarklyManager.registerFlagListener(LaunchDarklyManager.FLAG_ALARM_SOUND_OPTIONS) { alarmSoundOptionsEnabled = it }
+        
+        LaunchDarklyManager.registerFlagListener(LaunchDarklyManager.FLAG_STOPWATCH_ENABLED) { stopwatchEnabled = it }
+        LaunchDarklyManager.registerFlagListener(LaunchDarklyManager.FLAG_STOPWATCH_LAP) { stopwatchLapEnabled = it }
+        LaunchDarklyManager.registerFlagListener(LaunchDarklyManager.FLAG_STOPWATCH_HISTORY) { stopwatchHistoryEnabled = it }
+        
+        LaunchDarklyManager.registerFlagListener(LaunchDarklyManager.FLAG_TIMER_ENABLED) { timerEnabled = it }
+        LaunchDarklyManager.registerFlagListener(LaunchDarklyManager.FLAG_TIMER_PRESETS) { timerPresetsEnabled = it }
+        LaunchDarklyManager.registerFlagListener(LaunchDarklyManager.FLAG_TIMER_SOUND) { timerSoundEnabled = it }
     }
     
     Scaffold(

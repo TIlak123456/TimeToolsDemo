@@ -5,6 +5,7 @@ import android.content.Context
 import com.launchdarkly.sdk.LDUser
 import com.launchdarkly.sdk.android.LDClient
 import com.launchdarkly.sdk.android.LDConfig
+import com.launchdarkly.sdk.android.FeatureFlagChangeListener
 
 object LaunchDarklyManager {
     
@@ -12,6 +13,7 @@ object LaunchDarklyManager {
     private const val MOBILE_KEY = "mob-118be441-72a8-4d9c-a59e-570908c5a2b1"
     
     private var ldClient: LDClient? = null
+    private val listeners = mutableMapOf<String, MutableList<(Boolean) -> Unit>>()
     
     // Feature flag keys
     const val FLAG_ALARM_ENABLED = "alarm-clock-enabled"
@@ -42,6 +44,13 @@ object LaunchDarklyManager {
     
     fun getBooleanFlag(flagKey: String, defaultValue: Boolean = false): Boolean {
         return ldClient?.boolVariation(flagKey, defaultValue) ?: defaultValue
+    }
+    
+    fun registerFlagListener(flagKey: String, callback: (Boolean) -> Unit) {
+        val listener = FeatureFlagChangeListener {
+            callback(getBooleanFlag(flagKey, true))
+        }
+        ldClient?.registerFeatureFlagListener(flagKey, listener)
     }
     
     fun close() {
