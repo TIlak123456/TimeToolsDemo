@@ -2,6 +2,8 @@ package com.demo.timetoolsdemo
 
 import android.app.Application
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import com.launchdarkly.sdk.LDUser
 import com.launchdarkly.sdk.android.LDClient
 import com.launchdarkly.sdk.android.LDConfig
@@ -46,9 +48,14 @@ object LaunchDarklyManager {
         return ldClient?.boolVariation(flagKey, defaultValue) ?: defaultValue
     }
     
+    private val mainHandler = Handler(Looper.getMainLooper())
+    
     fun registerFlagListener(flagKey: String, callback: (Boolean) -> Unit) {
         val listener = FeatureFlagChangeListener {
-            callback(getBooleanFlag(flagKey, true))
+            val newValue = getBooleanFlag(flagKey, true)
+            mainHandler.post {
+                callback(newValue)
+            }
         }
         ldClient?.registerFeatureFlagListener(flagKey, listener)
     }
