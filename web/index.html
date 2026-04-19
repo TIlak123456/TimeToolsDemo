@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Tools - LaunchDarkly Demo</title>
+    <title>Time Tools | LaunchDarkly Feature Flags Demo</title>
     <script src="https://unpkg.com/launchdarkly-js-client-sdk@3"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,451 +14,410 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Space Grotesk', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
             min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px 40px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            border-bottom: 1px solid #333;
         }
 
-        .app-container {
-            background: #fff;
-            border-radius: 24px;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 420px;
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #6750A4 0%, #7E67B0 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .header p {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-top: 4px;
-        }
-
-        .tabs {
+        .logo {
             display: flex;
-            background: #f5f5f5;
-            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+            gap: 12px;
         }
 
-        .tab {
-            flex: 1;
-            padding: 16px 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            background: transparent;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 500;
-            color: #666;
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
         }
 
-        .tab:hover {
-            background: #eeeeee;
-        }
-
-        .tab.active {
-            background: white;
+        .logo h1 {
+            font-size: 22px;
             font-weight: 600;
         }
 
-        .tab.active.alarm { color: #E91E63; border-bottom: 3px solid #E91E63; }
-        .tab.active.stopwatch { color: #2196F3; border-bottom: 3px solid #2196F3; }
-        .tab.active.timer { color: #4CAF50; border-bottom: 3px solid #4CAF50; }
-
-        .tab .material-icons-round {
-            font-size: 24px;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .content {
-            padding: 32px 24px;
-            min-height: 480px;
+        .status {
             display: flex;
-            flex-direction: column;
             align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #888;
         }
 
-        .feature-panel {
-            display: none;
-            width: 100%;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .feature-panel.active {
-            display: flex;
-        }
-
-        /* Clock Display */
-        .clock-display {
-            width: 220px;
-            height: 220px;
+        .status-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 32px;
-            position: relative;
+            background: #888;
         }
 
-        .clock-display.alarm {
-            background: radial-gradient(circle, rgba(233, 30, 99, 0.12) 0%, rgba(233, 30, 99, 0.05) 100%);
+        .status-dot.connected {
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
         }
 
-        .clock-display.stopwatch {
-            background: radial-gradient(circle, rgba(33, 150, 243, 0.12) 0%, rgba(33, 150, 243, 0.05) 100%);
+        /* Main Layout - 2 Sections */
+        .main-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            min-height: calc(100vh - 81px);
         }
 
-        .clock-display.timer {
-            background: radial-gradient(circle, rgba(76, 175, 80, 0.12) 0%, rgba(76, 175, 80, 0.05) 100%);
+        /* Left Section - Flag Controls */
+        .sidebar {
+            background: #111;
+            border-right: 1px solid #222;
+            padding: 24px;
+            overflow-y: auto;
         }
 
-        .clock-display .icon {
-            font-size: 36px;
-            margin-bottom: 8px;
+        .sidebar h2 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 20px;
         }
 
-        .clock-display.alarm .icon { color: #E91E63; }
-        .clock-display.stopwatch .icon { color: #2196F3; }
-        .clock-display.timer .icon { color: #4CAF50; }
-
-        .clock-display .time {
-            font-size: 42px;
-            font-weight: 300;
+        .flag-group {
+            margin-bottom: 28px;
         }
 
-        .clock-display.alarm .time { color: #E91E63; }
-        .clock-display.stopwatch .time { color: #2196F3; }
-        .clock-display.timer .time { color: #4CAF50; }
-
-        .clock-display .period {
+        .flag-group-title {
             font-size: 16px;
-            opacity: 0.7;
-        }
-
-        /* Options */
-        .option-card {
-            width: 100%;
-            background: #f8f8f8;
-            border-radius: 12px;
-            padding: 16px;
+            font-weight: 600;
             margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 8px;
         }
 
-        .option-card .icon-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+        .flag-group-title.alarm { color: #f472b6; }
+        .flag-group-title.stopwatch { color: #60a5fa; }
+        .flag-group-title.timer { color: #4ade80; }
+
+        .flag-item {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+            transition: all 0.2s;
         }
 
-        .option-card .icon-box.alarm { background: rgba(233, 30, 99, 0.15); color: #E91E63; }
-        .option-card .icon-box.stopwatch { background: rgba(33, 150, 243, 0.15); color: #2196F3; }
-        .option-card .icon-box.timer { background: rgba(76, 175, 80, 0.15); color: #4CAF50; }
-
-        .option-card .info {
-            flex: 1;
+        .flag-item:hover {
+            border-color: #444;
         }
 
-        .option-card .info h3 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .option-card .info p {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .option-card .material-icons-round.chevron {
+        .flag-item .name {
+            font-size: 13px;
             color: #ccc;
         }
 
-        /* Toggle Switch */
-        .toggle-card {
-            width: 100%;
-            background: #f8f8f8;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .toggle-card.active {
-            background: rgba(233, 30, 99, 0.1);
-        }
-
-        .toggle-card .info h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .toggle-card .info p {
-            font-size: 12px;
-            color: #888;
+        .flag-item .key {
+            font-size: 10px;
+            color: #666;
+            font-family: monospace;
             margin-top: 2px;
         }
 
-        .toggle {
-            width: 52px;
-            height: 28px;
-            background: #ccc;
-            border-radius: 14px;
+        .flag-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .flag-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .flag-badge.on {
+            background: rgba(74, 222, 128, 0.15);
+            color: #4ade80;
+        }
+
+        .flag-badge.off {
+            background: rgba(248, 113, 113, 0.15);
+            color: #f87171;
+        }
+
+        /* Right Section - Feature Preview */
+        .preview-section {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            margin-bottom: 32px;
+        }
+
+        .preview-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .preview-header p {
+            color: #888;
+            font-size: 15px;
+        }
+
+        /* Feature Cards Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            flex: 1;
+        }
+
+        .feature-card {
+            background: linear-gradient(145deg, #1a1a1a, #111);
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
             position: relative;
-            cursor: pointer;
-            transition: background 0.3s;
+            overflow: hidden;
         }
 
-        .toggle.active {
-            background: #E91E63;
-        }
-
-        .toggle::after {
+        .feature-card::before {
             content: '';
             position: absolute;
-            width: 24px;
-            height: 24px;
-            background: white;
-            border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.3s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
         }
 
-        .toggle.active::after {
-            transform: translateX(24px);
+        .feature-card.alarm::before { background: linear-gradient(90deg, #f472b6, #ec4899); }
+        .feature-card.stopwatch::before { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+        .feature-card.timer::before { background: linear-gradient(90deg, #4ade80, #22c55e); }
+
+        .feature-card.disabled {
+            opacity: 0.4;
+            filter: grayscale(0.8);
         }
 
-        /* Control Buttons */
+        .feature-card .icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card.alarm .icon { background: rgba(244, 114, 182, 0.15); }
+        .feature-card.stopwatch .icon { background: rgba(96, 165, 250, 0.15); }
+        .feature-card.timer .icon { background: rgba(74, 222, 128, 0.15); }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-card.alarm h3 { color: #f472b6; }
+        .feature-card.stopwatch h3 { color: #60a5fa; }
+        .feature-card.timer h3 { color: #4ade80; }
+
+        .feature-card .description {
+            color: #888;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* Feature Content */
+        .feature-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .time-display {
+            font-size: 42px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            font-family: 'Space Grotesk', monospace;
+        }
+
+        .feature-card.alarm .time-display { color: #f472b6; }
+        .feature-card.stopwatch .time-display { color: #60a5fa; }
+        .feature-card.timer .time-display { color: #4ade80; }
+
+        /* Sub-features */
+        .sub-features {
+            margin-top: auto;
+        }
+
+        .sub-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-top: 1px solid #222;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .sub-feature.hidden {
+            display: none;
+        }
+
+        .sub-feature-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .feature-card.alarm .sub-feature-icon { background: rgba(244, 114, 182, 0.1); }
+        .feature-card.stopwatch .sub-feature-icon { background: rgba(96, 165, 250, 0.1); }
+        .feature-card.timer .sub-feature-icon { background: rgba(74, 222, 128, 0.1); }
+
+        /* Disabled Overlay */
+        .disabled-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 10, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+        }
+
+        .feature-card.disabled .disabled-overlay {
+            display: flex;
+        }
+
+        .disabled-overlay .lock-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .disabled-overlay p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Controls */
         .controls {
             display: flex;
-            gap: 20px;
+            gap: 12px;
             margin-top: 16px;
-            margin-bottom: 24px;
         }
 
         .btn {
+            padding: 10px 20px;
             border: none;
-            border-radius: 50%;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-        }
-
-        .btn:active {
-            transform: scale(0.95);
-        }
-
-        .btn-secondary {
-            width: 56px;
-            height: 56px;
-            background: #f0f0f0;
-            color: #666;
+            transition: all 0.2s;
         }
 
         .btn-primary {
-            width: 72px;
-            height: 72px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            color: #fff;
         }
 
-        .btn-primary.alarm { background: #E91E63; }
-        .btn-primary.stopwatch { background: #2196F3; }
-        .btn-primary.stopwatch.running { background: #E53935; }
-        .btn-primary.timer { background: #4CAF50; }
-        .btn-primary.timer.running { background: #E53935; }
+        .feature-card.alarm .btn-primary { background: #ec4899; }
+        .feature-card.stopwatch .btn-primary { background: #3b82f6; }
+        .feature-card.timer .btn-primary { background: #22c55e; }
 
-        .btn-lap {
-            width: 56px;
-            height: 56px;
-            color: #2196F3;
-            background: rgba(33, 150, 243, 0.15);
+        .btn-secondary {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
         }
 
         /* Presets */
         .presets {
             display: flex;
-            gap: 10px;
-            margin-bottom: 24px;
+            gap: 8px;
             flex-wrap: wrap;
-            justify-content: center;
+            margin-bottom: 16px;
         }
 
-        .preset-label {
-            font-size: 13px;
-            color: #888;
-            width: 100%;
-            text-align: center;
-            margin-bottom: 8px;
-        }
-
-        .preset {
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: none;
-            background: #f0f0f0;
-            color: #666;
+        .preset-btn {
+            padding: 6px 14px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #aaa;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .preset:hover {
-            background: #e0e0e0;
-        }
-
-        .preset.active {
-            background: rgba(76, 175, 80, 0.2);
-            color: #4CAF50;
-        }
-
-        /* Lap History */
-        .history-card {
-            width: 100%;
-            background: #f8f8f8;
-            border-radius: 12px;
-            padding: 16px;
-        }
-
-        .history-card .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .history-card .header-row h3 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2196F3;
-        }
-
-        .history-card .header-row .material-icons-round {
-            color: #2196F3;
-            font-size: 20px;
-        }
-
-        .history-card p {
-            font-size: 13px;
-            color: #888;
-        }
-
-        /* Disabled State */
-        .disabled-screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .disabled-screen.active {
-            display: flex;
-        }
-
-        .disabled-screen .lock-icon {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .disabled-screen .lock-icon.alarm { background: rgba(233, 30, 99, 0.1); color: rgba(233, 30, 99, 0.5); }
-        .disabled-screen .lock-icon.stopwatch { background: rgba(33, 150, 243, 0.1); color: rgba(33, 150, 243, 0.5); }
-        .disabled-screen .lock-icon.timer { background: rgba(76, 175, 80, 0.1); color: rgba(76, 175, 80, 0.5); }
-
-        .disabled-screen .lock-icon .material-icons-round {
-            font-size: 48px;
-        }
-
-        .disabled-screen h2 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .disabled-screen h2.alarm { color: #E91E63; }
-        .disabled-screen h2.stopwatch { color: #2196F3; }
-        .disabled-screen h2.timer { color: #4CAF50; }
-
-        .disabled-screen p {
-            color: #888;
-            margin-bottom: 24px;
-        }
-
-        .disabled-screen .badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-        }
-
-        .disabled-screen .badge.alarm { background: rgba(233, 30, 99, 0.08); color: #E91E63; }
-        .disabled-screen .badge.stopwatch { background: rgba(33, 150, 243, 0.08); color: #2196F3; }
-        .disabled-screen .badge.timer { background: rgba(76, 175, 80, 0.08); color: #4CAF50; }
-
-        .disabled-screen .badge .material-icons-round {
-            font-size: 20px;
+        .preset-btn:hover, .preset-btn.active {
+            background: rgba(74, 222, 128, 0.15);
+            border-color: #4ade80;
+            color: #4ade80;
         }
 
         /* Loading */
-        .loading {
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #0a0a0a;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 480px;
+            z-index: 100;
+        }
+
+        .loading-screen.hidden {
+            display: none;
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #f0f0f0;
-            border-top-color: #6750A4;
+            width: 48px;
+            height: 48px;
+            border: 3px solid #333;
+            border-top-color: #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -468,212 +426,260 @@
             to { transform: rotate(360deg); }
         }
 
-        .loading p {
-            margin-top: 16px;
-            color: #888;
-            font-size: 14px;
+        .loading-screen p {
+            margin-top: 20px;
+            color: #666;
         }
 
-        /* Status indicator */
-        .status-bar {
-            background: #f0f0f0;
-            padding: 8px 16px;
-            text-align: center;
-            font-size: 11px;
-            color: #888;
-            border-top: 1px solid #e0e0e0;
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
-        .status-bar.connected {
-            background: #e8f5e9;
-            color: #4CAF50;
+        @media (max-width: 900px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid #222;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="header">
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading">
+        <div class="spinner"></div>
+        <p>Connecting to LaunchDarkly...</p>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon">⏱</div>
             <h1>Time Tools</h1>
-            <p>LaunchDarkly Feature Flags Demo</p>
         </div>
-
-        <div class="tabs">
-            <button class="tab alarm active" onclick="switchTab('alarm')">
-                <span class="material-icons-round">alarm</span>
-                Alarm
-            </button>
-            <button class="tab stopwatch" onclick="switchTab('stopwatch')">
-                <span class="material-icons-round">timer</span>
-                Stopwatch
-            </button>
-            <button class="tab timer" onclick="switchTab('timer')">
-                <span class="material-icons-round">hourglass_full</span>
-                Timer
-            </button>
+        <div class="status">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Connecting...</span>
         </div>
+    </header>
 
-        <div class="content" id="content">
-            <!-- Loading State -->
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Connecting to LaunchDarkly...</p>
-            </div>
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Left: Flag Controls -->
+        <aside class="sidebar">
+            <h2>Feature Flags</h2>
 
-            <!-- Alarm Panel -->
-            <div class="feature-panel" id="alarm-panel">
-                <div class="clock-display alarm">
-                    <span class="material-icons-round icon">alarm</span>
-                    <span class="time">07:30</span>
-                    <span class="period">AM</span>
+            <!-- Alarm Flags -->
+            <div class="flag-group">
+                <div class="flag-group-title alarm">⏰ Alarm Clock</div>
+                <div class="flag-item">
+                    <div>
+                        <div class="name">Main Feature</div>
+                        <div class="key">alarm-clock-enabled</div>
+                    </div>
+                    <div class="flag-status">
+                        <span class="flag-badge" id="flag-alarm-enabled">...</span>
+                    </div>
                 </div>
-
-                <div class="toggle-card" id="alarm-toggle-card">
-                    <div class="info">
-                        <h3>Wake Up Alarm</h3>
-                        <p id="alarm-status-text">Tap to enable</p>
+                <div class="flag-item">
+                    <div>
+                        <div class="name">Snooze Option</div>
+                        <div class="key">alarm-snooze-enabled</div>
                     </div>
-                    <div class="toggle" id="alarm-toggle" onclick="toggleAlarm()"></div>
+                    <div class="flag-status">
+                        <span class="flag-badge" id="flag-alarm-snooze">...</span>
+                    </div>
                 </div>
-
-                <div class="option-card" id="snooze-option">
-                    <div class="icon-box alarm">
-                        <span class="material-icons-round">snooze</span>
+                <div class="flag-item">
+                    <div>
+                        <div class="name">Sound Options</div>
+                        <div class="key">alarm-sound-options-enabled</div>
                     </div>
-                    <div class="info">
-                        <h3>Snooze</h3>
-                        <p>5 minutes</p>
+                    <div class="flag-status">
+                        <span class="flag-badge" id="flag-alarm-sound">...</span>
                     </div>
-                    <span class="material-icons-round chevron">chevron_right</span>
-                </div>
-
-                <div class="option-card" id="sound-option">
-                    <div class="icon-box alarm">
-                        <span class="material-icons-round">music_note</span>
-                    </div>
-                    <div class="info">
-                        <h3>Alarm Sound</h3>
-                        <p>Classic Bell</p>
-                    </div>
-                    <span class="material-icons-round chevron">chevron_right</span>
                 </div>
             </div>
 
-            <!-- Alarm Disabled -->
-            <div class="disabled-screen" id="alarm-disabled">
-                <div class="lock-icon alarm">
-                    <span class="material-icons-round">lock</span>
-                </div>
-                <h2 class="alarm">Alarm Clock</h2>
-                <p>This feature is currently disabled</p>
-                <div class="badge alarm">
-                    <span class="material-icons-round">info</span>
-                    Controlled by LaunchDarkly
-                </div>
-            </div>
-
-            <!-- Stopwatch Panel -->
-            <div class="feature-panel" id="stopwatch-panel">
-                <div class="clock-display stopwatch">
-                    <span class="material-icons-round icon">timer</span>
-                    <span class="time" id="stopwatch-display">00:00.00</span>
-                </div>
-
-                <div class="controls">
-                    <button class="btn btn-secondary" onclick="resetStopwatch()">
-                        <span class="material-icons-round">refresh</span>
-                    </button>
-                    <button class="btn btn-primary stopwatch" id="stopwatch-btn" onclick="toggleStopwatch()">
-                        <span class="material-icons-round" id="stopwatch-icon">play_arrow</span>
-                    </button>
-                    <button class="btn btn-lap" id="lap-btn" onclick="recordLap()">
-                        <span class="material-icons-round">flag</span>
-                    </button>
-                </div>
-
-                <div class="history-card" id="history-card">
-                    <div class="header-row">
-                        <h3>Lap History</h3>
-                        <span class="material-icons-round">history</span>
+            <!-- Stopwatch Flags -->
+            <div class="flag-group">
+                <div class="flag-group-title stopwatch">⏱ Stopwatch</div>
+                <div class="flag-item">
+                    <div>
+                        <div class="name">Main Feature</div>
+                        <div class="key">stopwatch-enabled</div>
                     </div>
-                    <p id="lap-text">No laps recorded yet</p>
-                </div>
-            </div>
-
-            <!-- Stopwatch Disabled -->
-            <div class="disabled-screen" id="stopwatch-disabled">
-                <div class="lock-icon stopwatch">
-                    <span class="material-icons-round">lock</span>
-                </div>
-                <h2 class="stopwatch">Stopwatch</h2>
-                <p>This feature is currently disabled</p>
-                <div class="badge stopwatch">
-                    <span class="material-icons-round">info</span>
-                    Controlled by LaunchDarkly
-                </div>
-            </div>
-
-            <!-- Timer Panel -->
-            <div class="feature-panel" id="timer-panel">
-                <div class="clock-display timer">
-                    <span class="material-icons-round icon">hourglass_full</span>
-                    <span class="time" id="timer-display">05:00</span>
-                </div>
-
-                <div class="presets" id="presets-section">
-                    <span class="preset-label">Quick Presets</span>
-                    <button class="preset" onclick="setPreset('1:00')">1:00</button>
-                    <button class="preset" onclick="setPreset('3:00')">3:00</button>
-                    <button class="preset active" onclick="setPreset('5:00')">5:00</button>
-                    <button class="preset" onclick="setPreset('10:00')">10:00</button>
-                </div>
-
-                <div class="controls">
-                    <button class="btn btn-secondary" onclick="resetTimer()">
-                        <span class="material-icons-round">refresh</span>
-                    </button>
-                    <button class="btn btn-primary timer" id="timer-btn" onclick="toggleTimer()">
-                        <span class="material-icons-round" id="timer-icon">play_arrow</span>
-                    </button>
-                </div>
-
-                <div class="option-card" id="timer-sound-option">
-                    <div class="icon-box timer">
-                        <span class="material-icons-round">notifications_active</span>
+                    <div class="flag-status">
+                        <span class="flag-badge" id="flag-stopwatch-enabled">...</span>
                     </div>
-                    <div class="info">
-                        <h3>Timer Sound</h3>
-                        <p>Gentle Chime</p>
+                </div>
+                <div class="flag-item">
+                    <div>
+                        <div class="name">Lap Button</div>
+                        <div class="key">stopwatch-lap-enabled</div>
                     </div>
-                    <span class="material-icons-round chevron">chevron_right</span>
+                    <div class="flag-status">
+                        <span class="flag-badge" id="flag-stopwatch-lap">...</span>
+                    </div>
+                </div>
+                <div class="flag-item">
+                    <div>
+                        <div class="name">History</div>
+                        <div class="key">stopwatch-history-enabled</div>
+                    </div>
+                    <div class="flag-status">
+                        <span class="flag-badge" id="flag-stopwatch-history">...</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Timer Disabled -->
-            <div class="disabled-screen" id="timer-disabled">
-                <div class="lock-icon timer">
-                    <span class="material-icons-round">lock</span>
+            <!-- Timer Flags -->
+            <div class="flag-group">
+                <div class="flag-group-title timer">⏳ Timer</div>
+                <div class="flag-item">
+                    <div>
+                        <div class="name">Main Feature</div>
+                        <div class="key">countdown-timer-enabled</div>
+                    </div>
+                    <div class="flag-status">
+                        <span class="flag-badge" id="flag-timer-enabled">...</span>
+                    </div>
                 </div>
-                <h2 class="timer">Countdown Timer</h2>
-                <p>This feature is currently disabled</p>
-                <div class="badge timer">
-                    <span class="material-icons-round">info</span>
-                    Controlled by LaunchDarkly
+                <div class="flag-item">
+                    <div>
+                        <div class="name">Presets</div>
+                        <div class="key">timer-presets-enabled</div>
+                    </div>
+                    <div class="flag-status">
+                        <span class="flag-badge" id="flag-timer-presets">...</span>
+                    </div>
+                </div>
+                <div class="flag-item">
+                    <div>
+                        <div class="name">Sound</div>
+                        <div class="key">timer-sound-enabled</div>
+                    </div>
+                    <div class="flag-status">
+                        <span class="flag-badge" id="flag-timer-sound">...</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <div class="status-bar" id="status-bar">Connecting...</div>
+        <!-- Right: Feature Preview -->
+        <main class="preview-section">
+            <div class="preview-header">
+                <h2>Feature Preview</h2>
+                <p>Toggle flags in LaunchDarkly dashboard to see real-time changes</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Alarm Card -->
+                <div class="feature-card alarm" id="alarm-card">
+                    <div class="disabled-overlay">
+                        <div class="lock-icon">🔒</div>
+                        <p>Feature Disabled</p>
+                    </div>
+                    <div class="icon">⏰</div>
+                    <h3>Alarm Clock</h3>
+                    <p class="description">Set wake-up alarms with customizable sounds and snooze options.</p>
+                    <div class="feature-content">
+                        <div class="time-display">07:30 AM</div>
+                        <div class="controls">
+                            <button class="btn btn-primary">Set Alarm</button>
+                        </div>
+                        <div class="sub-features">
+                            <div class="sub-feature" id="snooze-feature">
+                                <div class="sub-feature-icon">💤</div>
+                                <span>Snooze: 5 minutes</span>
+                            </div>
+                            <div class="sub-feature" id="sound-feature">
+                                <div class="sub-feature-icon">🔔</div>
+                                <span>Sound: Classic Bell</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stopwatch Card -->
+                <div class="feature-card stopwatch" id="stopwatch-card">
+                    <div class="disabled-overlay">
+                        <div class="lock-icon">🔒</div>
+                        <p>Feature Disabled</p>
+                    </div>
+                    <div class="icon">⏱</div>
+                    <h3>Stopwatch</h3>
+                    <p class="description">Track elapsed time with lap recording and history.</p>
+                    <div class="feature-content">
+                        <div class="time-display" id="stopwatch-time">00:00.00</div>
+                        <div class="controls">
+                            <button class="btn btn-primary" id="sw-start-btn" onclick="toggleStopwatch()">Start</button>
+                            <button class="btn btn-secondary" onclick="resetStopwatch()">Reset</button>
+                            <button class="btn btn-secondary" id="lap-btn">Lap</button>
+                        </div>
+                        <div class="sub-features">
+                            <div class="sub-feature" id="lap-feature">
+                                <div class="sub-feature-icon">🏁</div>
+                                <span>Lap recording enabled</span>
+                            </div>
+                            <div class="sub-feature" id="history-feature">
+                                <div class="sub-feature-icon">📋</div>
+                                <span>History: No laps yet</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timer Card -->
+                <div class="feature-card timer" id="timer-card">
+                    <div class="disabled-overlay">
+                        <div class="lock-icon">🔒</div>
+                        <p>Feature Disabled</p>
+                    </div>
+                    <div class="icon">⏳</div>
+                    <h3>Countdown Timer</h3>
+                    <p class="description">Set countdown timers with quick presets and alerts.</p>
+                    <div class="feature-content">
+                        <div class="presets" id="presets-container">
+                            <button class="preset-btn" onclick="setPreset('1:00')">1:00</button>
+                            <button class="preset-btn" onclick="setPreset('3:00')">3:00</button>
+                            <button class="preset-btn active" onclick="setPreset('5:00')">5:00</button>
+                            <button class="preset-btn" onclick="setPreset('10:00')">10:00</button>
+                        </div>
+                        <div class="time-display" id="timer-time">05:00</div>
+                        <div class="controls">
+                            <button class="btn btn-primary" id="timer-start-btn" onclick="toggleTimer()">Start</button>
+                            <button class="btn btn-secondary" onclick="resetTimer()">Reset</button>
+                        </div>
+                        <div class="sub-features">
+                            <div class="sub-feature" id="timer-sound-feature">
+                                <div class="sub-feature-icon">🔊</div>
+                                <span>Alert: Gentle Chime</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
-        // LaunchDarkly Client-side ID
         const CLIENT_SIDE_ID = '69d68ebc61d1250c52e27f6b';
-
-        // Feature flag keys (same as Android app)
+        
         const FLAGS = {
             ALARM_ENABLED: 'alarm-clock-enabled',
             ALARM_SNOOZE: 'alarm-snooze-enabled',
-            ALARM_SOUND_OPTIONS: 'alarm-sound-options-enabled',
+            ALARM_SOUND: 'alarm-sound-options-enabled',
             STOPWATCH_ENABLED: 'stopwatch-enabled',
             STOPWATCH_LAP: 'stopwatch-lap-enabled',
             STOPWATCH_HISTORY: 'stopwatch-history-enabled',
@@ -682,167 +688,97 @@
             TIMER_SOUND: 'timer-sound-enabled'
         };
 
-        // State
         let ldClient;
-        let currentTab = 'alarm';
-        let alarmOn = false;
         let stopwatchRunning = false;
         let timerRunning = false;
-        let selectedPreset = '5:00';
 
-        // Initialize LaunchDarkly
-        async function initLaunchDarkly() {
+        async function init() {
             const user = {
-                key: 'demo-user-web-123',
-                name: 'Demo User (Web)',
-                email: 'demo-web@example.com',
-                custom: {
-                    plan: 'premium',
-                    platform: 'web'
-                }
+                key: 'web-demo-user',
+                name: 'Web Demo User',
+                custom: { platform: 'web' }
             };
 
             ldClient = LDClient.initialize(CLIENT_SIDE_ID, user);
 
             ldClient.on('ready', () => {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('status-bar').textContent = 'Connected to LaunchDarkly';
-                document.getElementById('status-bar').classList.add('connected');
-                updateAllFlags();
-                switchTab('alarm');
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('status-dot').classList.add('connected');
+                document.getElementById('status-text').textContent = 'Connected';
+                updateUI();
             });
 
-            // Listen for flag changes in real-time
-            ldClient.on('change', (changes) => {
-                console.log('Flag changes:', changes);
-                updateAllFlags();
+            ldClient.on('change', () => {
+                updateUI();
             });
         }
 
-        // Update UI based on all flags
-        function updateAllFlags() {
-            // Alarm flags
+        function updateUI() {
+            // Update flag badges
+            updateBadge('flag-alarm-enabled', ldClient.variation(FLAGS.ALARM_ENABLED, true));
+            updateBadge('flag-alarm-snooze', ldClient.variation(FLAGS.ALARM_SNOOZE, true));
+            updateBadge('flag-alarm-sound', ldClient.variation(FLAGS.ALARM_SOUND, true));
+            updateBadge('flag-stopwatch-enabled', ldClient.variation(FLAGS.STOPWATCH_ENABLED, true));
+            updateBadge('flag-stopwatch-lap', ldClient.variation(FLAGS.STOPWATCH_LAP, true));
+            updateBadge('flag-stopwatch-history', ldClient.variation(FLAGS.STOPWATCH_HISTORY, true));
+            updateBadge('flag-timer-enabled', ldClient.variation(FLAGS.TIMER_ENABLED, true));
+            updateBadge('flag-timer-presets', ldClient.variation(FLAGS.TIMER_PRESETS, true));
+            updateBadge('flag-timer-sound', ldClient.variation(FLAGS.TIMER_SOUND, true));
+
+            // Update feature cards
             const alarmEnabled = ldClient.variation(FLAGS.ALARM_ENABLED, true);
-            const snoozeEnabled = ldClient.variation(FLAGS.ALARM_SNOOZE, true);
-            const soundEnabled = ldClient.variation(FLAGS.ALARM_SOUND_OPTIONS, true);
-
-            document.getElementById('alarm-panel').style.display = alarmEnabled ? 'flex' : 'none';
-            document.getElementById('alarm-disabled').style.display = alarmEnabled ? 'none' : 'flex';
-            document.getElementById('snooze-option').style.display = snoozeEnabled ? 'flex' : 'none';
-            document.getElementById('sound-option').style.display = soundEnabled ? 'flex' : 'none';
-
-            // Stopwatch flags
             const stopwatchEnabled = ldClient.variation(FLAGS.STOPWATCH_ENABLED, true);
-            const lapEnabled = ldClient.variation(FLAGS.STOPWATCH_LAP, true);
-            const historyEnabled = ldClient.variation(FLAGS.STOPWATCH_HISTORY, true);
-
-            document.getElementById('stopwatch-panel').style.display = stopwatchEnabled ? 'flex' : 'none';
-            document.getElementById('stopwatch-disabled').style.display = stopwatchEnabled ? 'none' : 'flex';
-            document.getElementById('lap-btn').style.display = lapEnabled ? 'flex' : 'none';
-            document.getElementById('history-card').style.display = historyEnabled ? 'block' : 'none';
-
-            // Timer flags
             const timerEnabled = ldClient.variation(FLAGS.TIMER_ENABLED, true);
-            const presetsEnabled = ldClient.variation(FLAGS.TIMER_PRESETS, true);
-            const timerSoundEnabled = ldClient.variation(FLAGS.TIMER_SOUND, true);
 
-            document.getElementById('timer-panel').style.display = timerEnabled ? 'flex' : 'none';
-            document.getElementById('timer-disabled').style.display = timerEnabled ? 'none' : 'flex';
-            document.getElementById('presets-section').style.display = presetsEnabled ? 'flex' : 'none';
-            document.getElementById('timer-sound-option').style.display = timerSoundEnabled ? 'flex' : 'none';
+            document.getElementById('alarm-card').classList.toggle('disabled', !alarmEnabled);
+            document.getElementById('stopwatch-card').classList.toggle('disabled', !stopwatchEnabled);
+            document.getElementById('timer-card').classList.toggle('disabled', !timerEnabled);
+
+            // Update sub-features
+            document.getElementById('snooze-feature').classList.toggle('hidden', !ldClient.variation(FLAGS.ALARM_SNOOZE, true));
+            document.getElementById('sound-feature').classList.toggle('hidden', !ldClient.variation(FLAGS.ALARM_SOUND, true));
+            document.getElementById('lap-btn').classList.toggle('hidden', !ldClient.variation(FLAGS.STOPWATCH_LAP, true));
+            document.getElementById('lap-feature').classList.toggle('hidden', !ldClient.variation(FLAGS.STOPWATCH_LAP, true));
+            document.getElementById('history-feature').classList.toggle('hidden', !ldClient.variation(FLAGS.STOPWATCH_HISTORY, true));
+            document.getElementById('presets-container').classList.toggle('hidden', !ldClient.variation(FLAGS.TIMER_PRESETS, true));
+            document.getElementById('timer-sound-feature').classList.toggle('hidden', !ldClient.variation(FLAGS.TIMER_SOUND, true));
         }
 
-        // Tab switching
-        function switchTab(tab) {
-            currentTab = tab;
-            
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelector(`.tab.${tab}`).classList.add('active');
-
-            // Hide all panels and disabled screens
-            document.querySelectorAll('.feature-panel, .disabled-screen').forEach(p => {
-                p.classList.remove('active');
-                p.style.display = 'none';
-            });
-
-            // Show appropriate panel based on flag
-            if (ldClient) {
-                const flagKey = tab === 'alarm' ? FLAGS.ALARM_ENABLED : 
-                               tab === 'stopwatch' ? FLAGS.STOPWATCH_ENABLED : FLAGS.TIMER_ENABLED;
-                const isEnabled = ldClient.variation(flagKey, true);
-
-                if (isEnabled) {
-                    document.getElementById(`${tab}-panel`).style.display = 'flex';
-                    document.getElementById(`${tab}-panel`).classList.add('active');
-                } else {
-                    document.getElementById(`${tab}-disabled`).style.display = 'flex';
-                    document.getElementById(`${tab}-disabled`).classList.add('active');
-                }
-            }
+        function updateBadge(id, value) {
+            const badge = document.getElementById(id);
+            badge.textContent = value ? 'ON' : 'OFF';
+            badge.className = 'flag-badge ' + (value ? 'on' : 'off');
         }
 
-        // Alarm functions
-        function toggleAlarm() {
-            alarmOn = !alarmOn;
-            const toggle = document.getElementById('alarm-toggle');
-            const card = document.getElementById('alarm-toggle-card');
-            const statusText = document.getElementById('alarm-status-text');
-
-            toggle.classList.toggle('active', alarmOn);
-            card.classList.toggle('active', alarmOn);
-            statusText.textContent = alarmOn ? 'Alarm is set' : 'Tap to enable';
-        }
-
-        // Stopwatch functions
         function toggleStopwatch() {
             stopwatchRunning = !stopwatchRunning;
-            const btn = document.getElementById('stopwatch-btn');
-            const icon = document.getElementById('stopwatch-icon');
-
-            btn.classList.toggle('running', stopwatchRunning);
-            icon.textContent = stopwatchRunning ? 'stop' : 'play_arrow';
+            document.getElementById('sw-start-btn').textContent = stopwatchRunning ? 'Stop' : 'Start';
         }
 
         function resetStopwatch() {
             stopwatchRunning = false;
-            document.getElementById('stopwatch-display').textContent = '00:00.00';
-            document.getElementById('stopwatch-btn').classList.remove('running');
-            document.getElementById('stopwatch-icon').textContent = 'play_arrow';
-            document.getElementById('lap-text').textContent = 'No laps recorded yet';
+            document.getElementById('sw-start-btn').textContent = 'Start';
+            document.getElementById('stopwatch-time').textContent = '00:00.00';
         }
 
-        function recordLap() {
-            // Dummy function
-        }
-
-        // Timer functions
         function toggleTimer() {
             timerRunning = !timerRunning;
-            const btn = document.getElementById('timer-btn');
-            const icon = document.getElementById('timer-icon');
-
-            btn.classList.toggle('running', timerRunning);
-            icon.textContent = timerRunning ? 'pause' : 'play_arrow';
+            document.getElementById('timer-start-btn').textContent = timerRunning ? 'Pause' : 'Start';
         }
 
         function resetTimer() {
             timerRunning = false;
-            document.getElementById('timer-display').textContent = selectedPreset;
-            document.getElementById('timer-btn').classList.remove('running');
-            document.getElementById('timer-icon').textContent = 'play_arrow';
+            document.getElementById('timer-start-btn').textContent = 'Start';
+            document.getElementById('timer-time').textContent = '05:00';
         }
 
-        function setPreset(preset) {
-            selectedPreset = preset;
-            document.getElementById('timer-display').textContent = preset;
-            
-            document.querySelectorAll('.preset').forEach(p => p.classList.remove('active'));
+        function setPreset(time) {
+            document.getElementById('timer-time').textContent = time;
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
         }
 
-        // Initialize
-        initLaunchDarkly();
+        init();
     </script>
 </body>
 </html>
